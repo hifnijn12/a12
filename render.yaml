@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: dompet-konter
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: APP_PASSWORD
+        sync: false
+      - key: DB_NAME
+        value: dompet
+      - key: WA_SECRET
+        sync: false
+      - key: WA_ALLOWED
+        sync: false
+      - key: FONNTE_TOKEN
+        sync: false
+      - key: META_TOKEN
+        sync: false
+      - key: META_PHONE_ID
+        sync: false
