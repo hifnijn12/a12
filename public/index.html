@@ -106,7 +106,7 @@ label{display:block;font-size:12.5px;font-weight:600;color:#fff;margin:0 0 3px}
 </style>
 </head>
 <body>
-<div class="app"><div class="top"><b>Dompet Konter</b><span><button class="ib" id="th">Tema</button> <button class="ib" id="at">Atur</button></span></div><main id="v"></main></div>
+<div class="app"><div class="top"><b>Dompet Konter</b><span><button class="ib" id="th">Tema</button> <button class="ib" id="at">Atur</button></span></div><div class="msg" id="sy"></div><main id="v"></main></div>
 <div class="nav"><div id="nv"></div></div>
 <div class="ov" id="ov" hidden><div class="sh" id="sh"></div></div>
 <script>
@@ -120,7 +120,9 @@ const rp=n=>"Rp "+Math.abs(Math.round(n)).toLocaleString("id-ID"),sg=n=>(n<0?"âˆ
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function def(){const a=(id,name,c,min)=>({id,name,c,awal:0,min});return{acc:[a("cash","Cash","#1f8a5b",100000),a("pulsa","Agen Pulsa","#b9770e",200000),a("dana","DANA","#118eea",100000),a("sea","SeaBank","#ee5a24",100000),a("digi","Digipos","#c4182e",200000),a("web3","Saldo Web3","#6b4eff",0)],ppl:[],tx:[]}}
 function load(){try{const r=localStorage.getItem("dompet2");if(r)return JSON.parse(r)}catch(e){}return def()}
-function save(){try{localStorage.setItem("dompet2",JSON.stringify(S))}catch(e){}}
+let srv=new Set(),qq=Promise.resolve();
+const js=(m,u,b)=>fetch(u,{method:m,headers:{"Content-Type":"application/json"},body:b?JSON.stringify(b):undefined}).then(r=>{if(!r.ok)throw 0});
+function save(){qq=qq.then(async()=>{try{await js("PUT","/api/config",{acc:S.acc,ppl:S.ppl});const cur=new Set(S.tx.map(t=>t.id));for(const t of S.tx)if(!srv.has(t.id)){await js("POST","/api/tx",t);srv.add(t.id)}for(const id of [...srv])if(!cur.has(id)){await js("DELETE","/api/tx/"+encodeURIComponent(id));srv.delete(id)}$("#sy").textContent=""}catch(e){$("#sy").textContent="Gagal menyimpan ke server. Cek koneksi, lalu simpan lagi."}})}
 const an=id=>(S.acc.find(a=>a.id===id)||{name:"(dihapus)"}).name,pn=id=>(S.ppl.find(p=>p.id===id)||{name:"?"}).name;
 function eff(t){const a=[],p=[],m=t.jual||0;
  if(t.type==="jual")a.push([t.from,-(t.modal||0)],[t.to,m]);
@@ -223,7 +225,7 @@ $("#ov").onclick=e=>{if(e.target.id==="ov")closeSh()};
 function rz(el){var s=el.textContent,h='';for(var i=0;i<s.length;i++){var c=s.charAt(i);if(c===' '){h+=' ';continue}h+='<i class="c'+((i*7+s.length*3)%4)+'" style="transform:rotate('+(((i*37)%9)-4)+'deg)">'+esc(c)+'</i>'}el.innerHTML=h;el.setAttribute('aria-label',s)}
 const _dr=draw,wp=document.createElement('div');wp.className='wipe';wp.setAttribute('aria-hidden','true');document.body.appendChild(wp);let lastTab=tab;
 draw=function(){const ch=tab!==lastTab;lastTab=tab;_dr();document.querySelectorAll('.top b,.sec h2').forEach(rz);if(ch&&!matchMedia('(prefers-reduced-motion:reduce)').matches){wp.classList.remove('go');void wp.offsetWidth;wp.classList.add('go')}};
-S=load();draw();
+fetch("/api/state").then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{S={acc:d.acc,ppl:d.ppl,tx:d.tx};srv=new Set(S.tx.map(t=>t.id));draw()}).catch(()=>{$("#v").innerHTML='<div class="msg">Gagal memuat data dari server. Muat ulang halaman.</div>'});
 </script>
 </body>
 </html>
